@@ -1141,50 +1141,6 @@
         </div>
     </section>
 
-    <footer class="site-footer section-reveal section-reveal--d6" role="contentinfo">
-        <div class="site-footer__main">
-            <div>
-                <p class="site-footer__brand">Batitravoo</p>
-                <ul class="site-footer__social">
-                    <li><a href="#" rel="noopener noreferrer">Facebook</a></li>
-                    <li><a href="#" rel="noopener noreferrer">LinkedIn</a></li>
-                    <li><a href="#" rel="noopener noreferrer">Instagram</a></li>
-                    <li><a href="#" rel="noopener noreferrer">WhatsApp</a></li>
-                </ul>
-            </div>
-            <nav aria-label="Navigation pied de page">
-                <p class="site-footer__col-title">Navigation</p>
-                <ul class="site-footer__links">
-                    <li><a href="#accueil">Accueil</a></li>
-                    <li><a href="#solution">Solution</a></li>
-                    <li><a href="#pour-qui">Pour qui</a></li>
-                    <li><a href="#fonctionnalites">Fonctionnalités</a></li>
-                    <li><a href="#temoignages">Témoignages</a></li>
-                </ul>
-            </nav>
-            <nav aria-label="Utilisateurs">
-                <p class="site-footer__col-title">Utilisateurs</p>
-                <ul class="site-footer__links">
-                    <li><a href="#">Entrepreneur Bâtiment</a></li>
-                    <li><a href="#">Entreprise fournisseur</a></li>
-                    <li><a href="#">Artisan</a></li>
-                    <li><a href="#">Particulier</a></li>
-                </ul>
-            </nav>
-            <nav aria-label="Support">
-                <p class="site-footer__col-title">Support</p>
-                <ul class="site-footer__links">
-                    <li><a href="#">Contact</a></li>
-                    <li><a href="#">Centre d'aide</a></li>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Conditions d'utilisation</a></li>
-                    <li><a href="#">Politique de confidentialité</a></li>
-                </ul>
-            </nav>
-        </div>
-        <div class="site-footer__bottom">
-            <p class="site-footer__copyright">© 2026 BATITRAVOO – Tous droits réservés</p>
-        </div>
-    </footer>
+    @include('vitrine.partials.footer')
 </body>
 </html>

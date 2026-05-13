@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class PublicProductController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        $q = Product::query()
+            ->where('status', 'approved')
+            ->whereHas('user', function ($b) {
+                $b->where('profile_type', User::PROFILE_ENTREPRISE_FOURNISSEUR)
+                    ->where('is_active', true);
+            })
+            ->with(['category', 'user']);
+
+        if ($search = $request->string('q')->trim()) {
+            $q->where(function ($b) use ($search) {
+                $b->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('category_id')) {
+            $q->where('category_id', (int) $request->input('category_id'));
+        }
+
+        if ($request->filled('user_id')) {
+            $uid = (int) $request->input('user_id');
+            if ($uid > 0) {
+                $q->where('user_id', $uid);
+            }
+        }
+
+        $perPage = min(50, max(1, (int) $request->query('per_page', 20)));
+        $paginated = $q->orderByDesc('id')->paginate($perPage);
+
+        $paginated->getCollection()->transform(function (Product $p) {
+            return $this->toRow($p);
+        });
+
+        return response()->json($paginated);
+    }
+
+    public function show(Product $product): JsonResponse
+    {
+        if ($product->status !== 'approved') {
+            return response()->json(['message' => 'Non trouvé.'], 404);
+        }
+
+        $product->load(['category', 'user']);
+        $product->increment('views_count');
+
+        return response()->json(['data' => $this->toRow($product, true)]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function toRow(Product $p, bool $detail = false): array
+    {
+        $imageUrl = $p->image_path
+            ? storage_public_url($p->image_path)
+            : null;
+
+        $base = [
+            'id' => $p->id,
+            'title' => $p->title,
+            'slug' => $p->slug,
+            'description' => $p->description,
+            'image_path' => $p->image_path,
+            'image_url' => $imageUrl,
+            'has_image' => $p->image_path !== null && $p->image_path !== '',
+            'price_amount' => (int) $p->price_amount,
+            'price_display_fr' => number_format((int) $p->price_amount, 0, ',', ' ').' FCFA',
+            'stock_units' => (int) $p->stock_units,
+            'views_count' => (int) $p->views_count,
+            'user_id' => $p->user_id,
+            'category_id' => $p->category_id,
+        ];
+
+        if ($p->relationLoaded('user') && $p->user) {
+            $base['owner'] = [
+                'id' => $p->user->id,
+                'name' => $p->user->name,
+                'profile_type' => $p->user->profile_type,
+                'company_name' => $p->user->company_name,
+                'company_address' => $p->user->company_address,
+            ];
+        }
+        if ($p->relationLoaded('category') && $p->category) {
+            $base['category'] = [
+                'id' => $p->category->id,
+                'name' => $p->category->name,
+                'slug' => $p->category->slug,
+            ];
+        } elseif (! $detail) {
+            $base['category'] = null;
+        }
+
+        if ($detail) {
+            $base['created_at'] = $p->created_at?->toIso8601String();
+        }
+
+        return $base;
+    }
+}
