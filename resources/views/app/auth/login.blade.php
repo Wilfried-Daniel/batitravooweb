@@ -43,9 +43,9 @@
                     <label for="password">Mot de passe</label>
                     <input type="password" name="password" id="password" required autocomplete="current-password">
                 </div>
-                <div class="app-field" style="display:flex;align-items:center;gap:0.5rem;">
-                    <input type="checkbox" name="remember" id="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
-                    <label for="remember" style="margin:0;font-weight:500;">Se souvenir de moi</label>
+                <div class="app-field" style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.25rem;cursor:pointer;">
+                    <input type="checkbox" name="remember" id="remember" value="1" {{ old('remember') ? 'checked' : '' }} style="width:auto;margin:0;cursor:pointer;">
+                    <label for="remember" style="margin:0;font-weight:500;cursor:pointer;">Se souvenir de moi</label>
                 </div>
                 <button type="submit" class="app-btn">Se connecter</button>
             </form>

@@ -11,6 +11,15 @@
 
         return mb_strtoupper(mb_substr($name, 0, 1));
     };
+    $formatDate = function ($iso) {
+        if (empty($iso)) return '—';
+        try {
+            $c = \Carbon\Carbon::parse($iso)->locale('fr');
+            if ($c->isToday()) return $c->translatedFormat('H:i');
+            if ($c->isYesterday()) return 'Hier, ' . $c->translatedFormat('H:i');
+            return $c->translatedFormat('d M, H:i');
+        } catch (\Throwable) { return (string) $iso; }
+    };
     $peerName = null;
     if (($peerId ?? 0) > 0) {
         foreach ($conversations as $p) {
@@ -70,7 +79,7 @@
                                 @if (! empty($m['attachment_url']))
                                     <a href="{{ $m['attachment_url'] }}" class="msn__attach" target="_blank" rel="noopener">@include('app.partials.app-nav-icon', ['name' => 'paperclip'])<span>Pièce jointe</span></a>
                                 @endif
-                                <time class="msn__time" datetime="{{ $m['created_at'] ?? '' }}">{{ \Illuminate\Support\Str::limit($m['created_at'] ?? '', 19) }}</time>
+                                <time class="msn__time" datetime="{{ $m['created_at'] ?? '' }}">{{ $formatDate($m['created_at'] ?? '') }}</time>
                             </div>
                         </div>
                     @endforeach

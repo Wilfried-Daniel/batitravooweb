@@ -164,20 +164,19 @@
             <h1 class="admin-header__title">{{ $title ?? '' }}</h1>
 
             <form method="get" action="{{ route('admin.search') }}" class="admin-header__search" role="search">
-                <span class="admin-header__search-ico">
-                    <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-search" xlink:href="#admin-ico-search"/></svg>
-                </span>
                 <input
                     type="search"
                     name="q"
                     class="admin-header__search-input"
-                    placeholder="Recherche globale (utilisateurs, produits, devis…)"
+                    placeholder="Recherche globale..."
                     x-ref="search"
                     value="{{ request('q') }}"
                     aria-label="Recherche globale"
                     autocomplete="off"
                 >
-                <kbd class="admin-header__kbd">⌘K</kbd>
+                <span class="admin-header__search-ico">
+                    <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-search" xlink:href="#admin-ico-search"/></svg>
+                </span>
             </form>
 
             <div class="admin-header__actions">

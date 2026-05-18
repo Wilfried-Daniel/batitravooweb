@@ -14,10 +14,14 @@
         <label for="q">Recherche dans le texte</label>
         <input id="q" type="text" name="q" value="{{ request('q') }}" placeholder="Contenu…">
     </div>
-    <button type="submit" class="admin-btn admin-btn--navy">Filtrer</button>
-    @if(request('q'))
-        <a href="{{ route('admin.messages.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
-    @endif
+    <div class="form-row">
+        <button type="submit" class="admin-btn admin-btn--navy">Filtrer</button>
+    </div>
+    <div class="form-row">
+        @if(request('q'))
+            <a href="{{ route('admin.messages.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
+        @endif
+    </div>
 </form>
 
 <div class="card" style="padding:0">

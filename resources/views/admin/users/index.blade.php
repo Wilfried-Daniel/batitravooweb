@@ -59,13 +59,17 @@
             <input type="checkbox" name="inactive_only" value="1" @checked(request('inactive_only'))> Inactifs uniquement
         </label>
     </div>
-    <button type="submit" class="admin-btn admin-btn--navy">
-        <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-filter" xlink:href="#admin-ico-filter"/></svg>
-        Filtrer
-    </button>
-    @if(request('q') || request('profile_type') || request('inactive_only') || request('validation_status'))
-        <a href="{{ route('admin.users.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
-    @endif
+    <div class="form-row">
+        <button type="submit" class="admin-btn admin-btn--navy">
+            <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-filter" xlink:href="#admin-ico-filter"/></svg>
+            Filtrer
+        </button>
+    </div>
+    <div class="form-row">
+        @if(request('q') || request('profile_type') || request('inactive_only') || request('validation_status'))
+            <a href="{{ route('admin.users.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
+        @endif
+    </div>
 </form>
 
 <div class="card" style="padding:0">
