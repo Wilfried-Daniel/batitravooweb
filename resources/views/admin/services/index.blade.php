@@ -22,20 +22,11 @@
             <option value="entrepreneur" @selected(request('service_kind')==='entrepreneur')>Entrepreneur</option>
         </select>
     </div>
-    <div class="form-row">
-        <label for="status">Statut</label>
-        <select id="status" name="status">
-            <option value="">Tous les statuts</option>
-            <option value="pending" @selected(request('status')==='pending')>En attente</option>
-            <option value="approved" @selected(request('status')==='approved')>Approuvé</option>
-            <option value="rejected" @selected(request('status')==='rejected')>Rejeté</option>
-        </select>
-    </div>
     <button type="submit" class="admin-btn admin-btn--navy">
         <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-filter" xlink:href="#admin-ico-filter"/></svg>
         Filtrer
     </button>
-    @if(request('q') || request('status') || request('service_kind'))
+    @if(request('q') || request('service_kind'))
         <a href="{{ route('admin.services.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
     @endif
 </form>
@@ -49,7 +40,7 @@
                     <th>Type</th>
                     <th>Lieu</th>
                     <th>Notation</th>
-                    <th>Statut</th>
+                    <th>Visibilité</th>
                     <th class="row-actions"></th>
                 </tr>
             </thead>
@@ -64,15 +55,16 @@
                     <td>{{ $s->location ?? '—' }}</td>
                     <td>★ {{ $s->rating }} <span style="color:var(--text-3)">({{ $s->review_count }})</span></td>
                     <td>
-                        @if($s->status === 'approved')<span class="badge b-ok">Approuvé</span>
-                        @elseif($s->status === 'rejected')<span class="badge b-no">Rejeté</span>
-                        @else <span class="badge b-pending">En attente</span>
+                        @if($s->is_visible)
+                            <span class="badge b-ok">Visible</span>
+                        @else
+                            <span class="badge b-mute">Masqué</span>
                         @endif
                     </td>
                     <td class="row-actions">
                         <a class="admin-link" href="{{ route('admin.services.show', $s) }}">
                             <svg width="14" height="14" aria-hidden="true"><use href="#admin-ico-eye" xlink:href="#admin-ico-eye"/></svg>
-                            Modérer
+                            Voir
                         </a>
                     </td>
                 </tr>

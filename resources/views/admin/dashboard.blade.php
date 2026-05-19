@@ -17,7 +17,7 @@
         };
     };
 
-    $kpiPending = $counts['pending_products'] + $counts['pending_services'];
+    $kpiPending = $counts['pending_products'];
 
     $productsByStatus = ['approved' => 0, 'pending' => 0, 'rejected' => 0, 'draft' => 0];
     foreach (\App\Models\Product::query()->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status') as $k => $c) {
@@ -154,7 +154,7 @@
         </div>
         <p class="admin-kpi__label">Modération</p>
         <p class="admin-kpi__value">{{ $kpiPending }}</p>
-        <p class="admin-kpi__sub">Produits + services en attente</p>
+        <p class="admin-kpi__sub">Produits en attente</p>
     </article>
 </div>
 
@@ -164,7 +164,7 @@
         <div class="admin-chart-canvas"><canvas id="chartProfiles"></canvas></div>
     </div>
     <div class="admin-chart-card">
-        <h3>Modération produits &amp; services</h3>
+        <h3>Modération produits</h3>
         <div class="admin-chart-canvas"><canvas id="chartModeration"></canvas></div>
     </div>
 </div>
@@ -207,14 +207,19 @@
     </div>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>Titre</th><th>Type</th><th>Statut</th><th>Prestataire</th><th class="row-actions"></th></tr></thead>
+            <thead><tr><th>Titre</th><th>Type</th><th>Visibilité</th><th>Prestataire</th><th class="row-actions"></th></tr></thead>
             <tbody>
             @forelse($recentServices as $s)
-                @php([$badge, $bLabel] = $statusBadge($s->status))
                 <tr>
                     <td><strong>{{ $s->title }}</strong></td>
                     <td><span class="badge b-mute">{{ $s->service_kind }}</span></td>
-                    <td><span class="badge b-{{ $badge }}">{{ $bLabel }}</span></td>
+                    <td>
+                        @if($s->is_visible)
+                            <span class="badge b-ok">Visible</span>
+                        @else
+                            <span class="badge b-mute">Masqué</span>
+                        @endif
+                    </td>
                     <td>{{ $s->user?->name ?? '—' }}</td>
                     <td class="row-actions"><a class="admin-link" href="{{ route('admin.services.show', $s) }}">Voir</a></td>
                 </tr>
@@ -282,7 +287,6 @@
                     labels: moderationLabels,
                     datasets: [
                         { label: 'Produits', data: moderationProducts, backgroundColor: navy, borderRadius: 8, barPercentage: 0.7, categoryPercentage: 0.65 },
-                        { label: 'Services', data: moderationServices, backgroundColor: orange, borderRadius: 8, barPercentage: 0.7, categoryPercentage: 0.65 },
                     ],
                 },
                 options: {

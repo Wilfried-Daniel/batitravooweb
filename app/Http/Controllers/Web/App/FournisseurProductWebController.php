@@ -70,10 +70,10 @@ class FournisseurProductWebController extends ShellController
             'image_path' => $imagePath,
             'price_amount' => $data['price_amount'],
             'stock_units' => $data['stock_units'],
-            'status' => 'pending',
+            'status' => 'approved',
         ]);
 
-        return redirect()->route('app.fournisseur.products')->with('status', 'Produit créé. Il sera visible après validation.');
+        return redirect()->route('app.fournisseur.products')->with('status', 'Produit créé et publié sur le marketplace.');
     }
 
     public function update(Request $request, Product $product): RedirectResponse

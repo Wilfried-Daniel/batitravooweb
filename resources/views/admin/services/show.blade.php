@@ -1,14 +1,5 @@
 @extends('admin.layout', ['title' => 'Service — '.$service->title])
 
-@php
-    $statusBadge = match ($service->status) {
-        'approved' => ['ok', 'En ligne'],
-        'pending' => ['pending', 'En attente'],
-        'rejected' => ['no', 'Rejeté'],
-        default => ['mute', $service->status],
-    };
-@endphp
-
 @section('content')
 
 <div class="admin-page-head">
@@ -27,7 +18,9 @@
 <div class="card">
     <div class="admin-card-h">
         <h3 class="admin-card-title">Informations</h3>
-        <span class="badge b-{{ $statusBadge[0] }}">{{ $statusBadge[1] }}</span>
+        <span class="badge {{ $service->is_visible ? 'b-ok' : 'b-mute' }}">
+            {{ $service->is_visible ? 'Visible marketplace' : 'Masqué' }}
+        </span>
     </div>
     <dl class="admin-detail">
         <dt>Prestataire</dt>
@@ -68,24 +61,15 @@
 
 <div class="card" style="max-width:580px">
     <div class="admin-card-h">
-        <h3 class="admin-card-title">Validation</h3>
+        <h3 class="admin-card-title">Notes internes</h3>
     </div>
     <form method="post" action="{{ route('admin.services.update', $service) }}">
         @csrf
         @method('PUT')
         <x-admin.field
-            name="status"
-            type="select"
-            label="Statut"
-            :value="$service->status"
-            :options="['pending' => 'En attente', 'approved' => 'Approuvé', 'rejected' => 'Rejeté']"
-            required
-            maxWidth="100%"
-        />
-        <x-admin.field
             name="admin_notes"
             type="textarea"
-            label="Notes internes"
+            label="Notes"
             :value="$service->admin_notes"
             maxWidth="100%"
             rows="3"

@@ -22,7 +22,7 @@ class BatimentServiceWebController extends ShellController
             'formService' => null,
             'categories' => $categories,
             'title' => 'Nouvelle prestation',
-            'intro' => 'Publiez une prestation BTP : visibilité marketplace après modération — comme sur l’application mobile.',
+            'intro' => 'Publiez une prestation BTP : elle est disponible sur le marketplace dès l’enregistrement (selon la visibilité).',
         ]);
     }
 
@@ -74,10 +74,11 @@ class BatimentServiceWebController extends ShellController
             'service_kind' => 'entrepreneur',
             'price_variables' => $request->boolean('price_variables'),
             'price_fixed_label' => $data['price_fixed_label'] ?? null,
-            'status' => 'pending',
+            'status' => 'approved',
+            'is_visible' => true,
         ]);
 
-        return redirect()->route('app.batiment.services')->with('status', 'Prestation créée. Elle sera visible après validation.');
+        return redirect()->route('app.batiment.services')->with('status', 'Prestation publiée avec succès.');
     }
 
     public function update(Request $request, Service $service): RedirectResponse

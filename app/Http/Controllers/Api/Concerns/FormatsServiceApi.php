@@ -3,9 +3,34 @@
 namespace App\Http\Controllers\Api\Concerns;
 
 use App\Models\Service;
+use App\Models\User;
 
 trait FormatsServiceApi
 {
+    /**
+     * Type catalogue aligné sur le profil du prestataire (source de vérité pour la marketplace).
+     */
+    protected function effectiveServiceKind(Service $s): string
+    {
+        $user = $s->relationLoaded('user') ? $s->user : null;
+        if ($user instanceof User) {
+            if ($user->profile_type === User::PROFILE_ENTREPRENEUR_BATIMENT) {
+                return 'entrepreneur';
+            }
+            if ($user->profile_type === User::PROFILE_ARTISAN) {
+                return 'artisan';
+            }
+        }
+
+        $kind = $s->service_kind;
+
+        return in_array($kind, ['artisan', 'entrepreneur'], true) ? $kind : 'artisan';
+    }
+
+    protected function serviceKindForProfileType(string $profileType): string
+    {
+        return $profileType === User::PROFILE_ENTREPRENEUR_BATIMENT ? 'entrepreneur' : 'artisan';
+    }
     /**
      * Image affichée : upload disque public en priorité, sinon URL externe https.
      * Pas d’image factice : si vide → null (l’app peut afficher une icône).

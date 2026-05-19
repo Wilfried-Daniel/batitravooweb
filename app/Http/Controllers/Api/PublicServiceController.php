@@ -16,7 +16,6 @@ class PublicServiceController extends Controller
     public function index(Request $request): JsonResponse
     {
         $q = Service::query()
-            ->where('status', 'approved')
             ->where('is_visible', true)
             ->whereHas('user', function ($b) {
                 $b->whereIn('profile_type', [
@@ -26,12 +25,25 @@ class PublicServiceController extends Controller
             })
             ->with(['category', 'user']);
 
-        if ($kind = $request->string('service_kind')->trim()) {
-            if (in_array($kind, ['artisan', 'entrepreneur'], true)) {
-                $q->where('service_kind', $kind);
+        $kind = $request->string('service_kind')->trim()->toString();
+        if ($kind !== '') {
+            if ($kind === 'entrepreneur') {
+                $q->whereHas('user', fn ($b) => $b->where(
+                    'profile_type',
+                    User::PROFILE_ENTREPRENEUR_BATIMENT
+                ));
+            } elseif ($kind === 'artisan') {
+                $q->whereHas('user', fn ($b) => $b->where(
+                    'profile_type',
+                    User::PROFILE_ARTISAN
+                ));
             }
         }
-        if ($search = $request->string('q')->trim()) {
+        if ($request->filled('user_id')) {
+            $q->where('user_id', (int) $request->input('user_id'));
+        }
+        $search = $request->string('q')->trim()->toString();
+        if ($search !== '') {
             $q->where(function ($b) use ($search) {
                 $b->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
@@ -52,7 +64,7 @@ class PublicServiceController extends Controller
 
     public function show(Service $service): JsonResponse
     {
-        if ($service->status !== 'approved' || ! $service->is_visible) {
+        if (! $service->is_visible) {
             return response()->json(['message' => 'Non trouvé.'], 404);
         }
 
@@ -74,10 +86,10 @@ class PublicServiceController extends Controller
             'slug' => $s->slug,
             'description' => $s->description,
             'location' => $s->location,
-            'image_path' => null,
+            'image_path' => $s->image_path,
             'image_url' => $imageUrl,
             'has_image' => $imageUrl !== null,
-            'service_kind' => $s->service_kind,
+            'service_kind' => $this->effectiveServiceKind($s),
             'price_variables' => (bool) $s->price_variables,
             'price_fixed_label' => $s->price_fixed_label,
             'pricing' => $this->servicePricingPayload($s),

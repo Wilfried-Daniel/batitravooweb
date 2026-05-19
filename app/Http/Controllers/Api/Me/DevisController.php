@@ -8,8 +8,10 @@ use App\Models\Candidature;
 use App\Models\Devis;
 use App\Models\InAppNotification;
 use App\Models\User;
+use App\Services\DevisStockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class DevisController extends Controller
@@ -24,7 +26,9 @@ class DevisController extends Controller
         } elseif ($u->profile_type === User::PROFILE_PARTICULIER) {
             $q = Devis::query()->where('client_user_id', $u->id);
         } elseif ($u->profile_type === User::PROFILE_ARTISAN) {
-            $q = Devis::query()->where('user_id', $u->id);
+            $q = Devis::query()->where(function ($w) use ($u) {
+                $w->where('user_id', $u->id)->orWhere('client_user_id', $u->id);
+            });
         } else {
             return response()->json(['message' => 'Profil non autorisé pour cette ressource.'], 403);
         }
@@ -34,7 +38,7 @@ class DevisController extends Controller
             $q->where('status', $st);
         }
 
-        $items = $q->orderByDesc('id')->get()->map(fn (Devis $d) => $this->row($d));
+        $items = $q->with(['user', 'clientUser'])->orderByDesc('id')->get()->map(fn (Devis $d) => $this->row($d));
 
         return response()->json([
             'data' => $items,
@@ -77,6 +81,8 @@ class DevisController extends Controller
         if (! $this->canView($u, $devis)) {
             return response()->json(['message' => 'Non trouvé.'], 404);
         }
+
+        $devis->load(['user', 'clientUser']);
 
         return response()->json(['data' => $this->row($devis, true)]);
     }
@@ -132,6 +138,7 @@ class DevisController extends Controller
                 'notes' => $data['notes'] ?? null,
                 'status' => 'non_traite',
             ]);
+            $devis->load(['user', 'clientUser']);
 
             return response()->json(['data' => $this->row($devis, true)], 201);
         }
@@ -150,6 +157,7 @@ class DevisController extends Controller
                 'notes' => $data['notes'] ?? null,
                 'status' => 'non_traite',
             ]);
+            $devis->load(['user', 'clientUser']);
 
             return response()->json(['data' => $this->row($devis, true)], 201);
         }
@@ -228,13 +236,18 @@ class DevisController extends Controller
             ],
         ]);
 
+        $devis->load(['user', 'clientUser']);
+
         return response()->json(['data' => $this->row($devis, true)], 201);
     }
 
     public function update(Request $request, Devis $devis): JsonResponse
     {
         $u = $request->user();
-        if (! $this->canManage($u, $devis)) {
+        $asPrestataire = $this->canManage($u, $devis);
+        $asClient = $this->canClientFinalizeStatus($u, $devis);
+
+        if (! $asPrestataire && ! $asClient) {
             return response()->json(['message' => 'Non trouvé.'], 404);
         }
 
@@ -249,8 +262,25 @@ class DevisController extends Controller
             'order_reference' => ['nullable', 'string', 'max:64'],
         ]);
 
+        if ($asClient) {
+            if (array_key_exists('line_items', $data) || array_key_exists('notes', $data) || array_key_exists('order_reference', $data)) {
+                return response()->json(['message' => 'Seul le statut peut être mis à jour.'], 403);
+            }
+            if (! array_key_exists('status', $data) || ! in_array((string) $data['status'], ['valide', 'rejete'], true)) {
+                return response()->json(['message' => 'Vous pouvez uniquement accepter ou refuser la proposition.'], 422);
+            }
+        }
+
+        $previousStatus = (string) $devis->status;
+        $stockService = app(DevisStockService::class);
+
         if (array_key_exists('line_items', $data)) {
-            $devis->line_items = $data['line_items'];
+            $incoming = $data['line_items'];
+            $previous = $devis->line_items;
+            if (is_array($previous) && is_array($incoming)) {
+                $incoming = $stockService->mergeLineItemsPreservingOrderProducts($previous, $incoming);
+            }
+            $devis->line_items = $incoming;
         }
         if (array_key_exists('notes', $data)) {
             $devis->notes = $data['notes'];
@@ -264,9 +294,44 @@ class DevisController extends Controller
                 $devis->processed_at = now()->toDateString();
             }
         }
-        $devis->save();
+
+        $willValidate = (string) $devis->status === 'valide' && $previousStatus !== 'valide';
+
+        DB::transaction(function () use ($devis, $willValidate, $stockService): void {
+            $devis->save();
+            if ($willValidate) {
+                $stockService->deductForValidatedOrder($devis->fresh());
+            }
+        });
+
+        $devis->load(['user', 'clientUser']);
 
         return response()->json(['data' => $this->row($devis, true)]);
+    }
+
+    /**
+     * Le client finalise la réponse du prestataire (accepter / refuser).
+     */
+    private function canClientFinalizeStatus(User $u, Devis $d): bool
+    {
+        if (! $d->client_user_id || (int) $d->client_user_id !== (int) $u->id) {
+            return false;
+        }
+
+        if (in_array((string) $d->status, ['valide', 'rejete'], true)) {
+            return false;
+        }
+
+        if (! in_array((string) $d->status, ['envoye', 'en_cours'], true)) {
+            return false;
+        }
+
+        return in_array($u->profile_type, [
+            User::PROFILE_PARTICULIER,
+            User::PROFILE_ARTISAN,
+            User::PROFILE_ENTREPRENEUR_BATIMENT,
+            User::PROFILE_ENTREPRISE_FOURNISSEUR,
+        ], true);
     }
 
     private function canView(User $u, Devis $d): bool
@@ -274,11 +339,13 @@ class DevisController extends Controller
         if (in_array($u->profile_type, [User::PROFILE_ENTREPRENEUR_BATIMENT, User::PROFILE_ENTREPRISE_FOURNISSEUR, User::PROFILE_ARTISAN], true) && (int) $d->user_id === (int) $u->id) {
             return true;
         }
-        if ($u->profile_type === User::PROFILE_PARTICULIER && (int) $d->client_user_id === (int) $u->id) {
-            return true;
-        }
-        if (in_array($u->profile_type, [User::PROFILE_ENTREPRENEUR_BATIMENT], true) && (int) $d->client_user_id === (int) $u->id) {
-            return true;
+        if ($d->client_user_id && (int) $d->client_user_id === (int) $u->id) {
+            return in_array($u->profile_type, [
+                User::PROFILE_PARTICULIER,
+                User::PROFILE_ENTREPRENEUR_BATIMENT,
+                User::PROFILE_ENTREPRISE_FOURNISSEUR,
+                User::PROFILE_ARTISAN,
+            ], true);
         }
 
         return false;
@@ -298,6 +365,9 @@ class DevisController extends Controller
      */
     private function row(Devis $d, bool $full = false): array
     {
+        $provider = $d->relationLoaded('user') ? $d->user : null;
+        $client = $d->relationLoaded('clientUser') ? $d->clientUser : null;
+
         $r = [
             'id' => $d->id,
             'user_id' => $d->user_id,
@@ -310,13 +380,55 @@ class DevisController extends Controller
             'status' => $d->status,
             'status_label' => $this->statusLabel((string) $d->status),
             'created_at' => $d->created_at?->toIso8601String(),
+            'is_marketplace_request' => $this->isMarketplaceRequest($d),
+            'prestataire_name' => $this->displayName($provider),
+            'prestataire_profile_type' => $provider?->profile_type,
         ];
         if ($full) {
             $r['line_items'] = $d->line_items;
             $r['notes'] = $d->notes;
             $r['processed_at'] = $d->processed_at?->toIso8601String();
+            $r['client_display_name'] = $this->displayName($client) ?? $d->client_name;
         }
 
         return $r;
+    }
+
+    private function isMarketplaceRequest(Devis $d): bool
+    {
+        if ($d->client_user_id === null) {
+            return false;
+        }
+        $items = $d->line_items;
+        if (is_array($items)) {
+            $source = $items['source'] ?? null;
+            if (is_string($source) && str_contains($source, 'marketplace')) {
+                return true;
+            }
+        }
+        $ref = (string) ($d->order_reference ?? '');
+        if (str_starts_with($ref, 'PANIER-')) {
+            return true;
+        }
+        $title = strtolower((string) $d->title);
+        if (str_contains($title, 'demande marketplace') || str_contains($title, 'commande catalogue')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function displayName(?User $user): ?string
+    {
+        if ($user === null) {
+            return null;
+        }
+        $company = trim((string) ($user->company_name ?? ''));
+        if ($company !== '') {
+            return $company;
+        }
+        $name = trim((string) ($user->name ?? ''));
+
+        return $name !== '' ? $name : null;
     }
 }

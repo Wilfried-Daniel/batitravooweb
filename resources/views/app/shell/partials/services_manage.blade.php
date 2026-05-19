@@ -5,14 +5,10 @@
         'batiment' => 'Prestations entreprise BTP',
         default => 'Mes services',
     };
-    $productStatus = static function (?string $s): string {
-        return match ($s) {
-            'draft' => 'Brouillon',
-            'pending' => 'En validation',
-            'approved' => 'Publié',
-            'rejected' => 'Refusé',
-            default => $s ?? '—',
-        };
+    $visibilityLabel = static function (array $row): string {
+        $visible = $row['is_visible'] ?? true;
+
+        return $visible ? 'Visible' : 'Masqué';
     };
     $priceShort = static function (array $row): string {
         $pr = $row['pricing'] ?? [];
@@ -55,7 +51,7 @@
                         <th>Type</th>
                         <th>Prix / tarif</th>
                         <th>Lieu</th>
-                        <th>Statut</th>
+                        <th>Visibilité</th>
                         <th class="app-table__col-actions">Actions</th>
                     </tr>
                 </thead>
@@ -76,7 +72,7 @@
                             <td>{{ $kindLabel }}</td>
                             <td class="app-muted">{{ $priceShort($row) }}</td>
                             <td class="app-muted">{{ $row['location'] ?? '—' }}</td>
-                            <td><span class="app-pill">{{ $productStatus($row['status'] ?? null) }}</span></td>
+                            <td><span class="app-pill">{{ $visibilityLabel($row) }}</span></td>
                             <td class="app-table__col-actions">
                                 @if ($sid > 0)
                                     <span class="app-action-links">

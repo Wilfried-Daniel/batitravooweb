@@ -40,7 +40,7 @@ class UserDocumentController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $docs = $request->user()->documents()->orderBy('kind')->get()->map(function (UserDocument $d) {
+        $docs = $request->user()->documents()->orderBy('kind')->orderBy('id')->get()->map(function (UserDocument $d) {
             $url = $d->storage_path ? storage_public_url($d->storage_path) : null;
 
             return [
@@ -84,5 +84,17 @@ class UserDocumentController extends Controller
                 'has_file' => $url !== null,
             ],
         ], 201);
+    }
+
+    public function destroy(Request $request, UserDocument $document): JsonResponse
+    {
+        if ($document->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Document introuvable.'], 404);
+        }
+
+        $document->deleteStoredFile();
+        $document->delete();
+
+        return response()->json(['message' => 'Document supprimé.']);
     }
 }

@@ -20,7 +20,8 @@ class PublicProductController extends Controller
             })
             ->with(['category', 'user']);
 
-        if ($search = $request->string('q')->trim()) {
+        $search = $request->string('q')->trim()->toString();
+        if ($search !== '') {
             $q->where(function ($b) use ($search) {
                 $b->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");

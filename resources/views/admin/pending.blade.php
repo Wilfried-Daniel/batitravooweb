@@ -44,22 +44,6 @@
 
     <article class="admin-kpi">
         <div class="admin-kpi__head">
-            <div class="admin-kpi__ico admin-kpi__ico--green">
-                <svg width="20" height="20" aria-hidden="true"><use href="#admin-ico-wrench" xlink:href="#admin-ico-wrench"/></svg>
-            </div>
-            @if ($pendingServices > 0)
-                <span class="admin-kpi__delta admin-kpi__delta--down">À traiter</span>
-            @endif
-        </div>
-        <p class="admin-kpi__label">Services en attente</p>
-        <p class="admin-kpi__value">{{ $pendingServices }}</p>
-        <p class="admin-kpi__sub" style="margin-top:0.5rem">
-            <a href="{{ route('admin.services.index', ['status' => 'pending']) }}" class="admin-link">Liste services →</a>
-        </p>
-    </article>
-
-    <article class="admin-kpi">
-        <div class="admin-kpi__head">
             <div class="admin-kpi__ico admin-kpi__ico--navy">
                 <svg width="20" height="20" aria-hidden="true"><use href="#admin-ico-doc" xlink:href="#admin-ico-doc"/></svg>
             </div>
