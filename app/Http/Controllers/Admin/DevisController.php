@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Devis;
+use App\Services\DevisStockService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -46,7 +48,15 @@ class DevisController extends Controller
             'processed_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ]);
-        $devis->update($data);
+        $previousStatus = (string) $devis->status;
+        $willValidate = ($data['status'] ?? '') === 'valide' && $previousStatus !== 'valide';
+
+        DB::transaction(function () use ($devis, $data, $willValidate): void {
+            $devis->update($data);
+            if ($willValidate) {
+                app(DevisStockService::class)->deductForValidatedOrder($devis->fresh());
+            }
+        });
 
         return redirect()->route('admin.devis.show', $devis)->with('ok', 'Devis mis à jour.');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Me;
 use App\Http\Controllers\Controller;
 use App\Models\Besoin;
 use App\Models\Candidature;
+use App\Models\Devis;
 use App\Models\InAppNotification;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -32,7 +33,7 @@ class CandidatureController extends Controller
             $q->where('besoin_id', $besoinId);
         }
 
-        $items = $q->with('besoin')
+        $items = $q->with(['besoin', 'applicant'])
             ->orderByDesc('id')
             ->get()
             ->map(fn (Candidature $c) => $this->row($c));
@@ -51,7 +52,7 @@ class CandidatureController extends Controller
 
         $items = Candidature::query()
             ->where('applicant_id', $u->id)
-            ->with('besoin')
+            ->with(['besoin', 'applicant'])
             ->orderByDesc('id')
             ->get()
             ->map(fn (Candidature $c) => $this->row($c));
@@ -150,7 +151,7 @@ class CandidatureController extends Controller
         $candidature->status = $data['status'];
         $candidature->save();
 
-        $candidature->load('besoin');
+        $candidature->load(['besoin', 'applicant']);
 
         return response()->json(['data' => $this->row($candidature)]);
     }
@@ -160,6 +161,27 @@ class CandidatureController extends Controller
      */
     private function row(Candidature $c): array
     {
+        $applicant = $c->relationLoaded('applicant') ? $c->applicant : null;
+        $devisId = $this->resolveDevisId($c);
+        $devisPayload = null;
+        if ($devisId !== null) {
+            $devis = Devis::query()->find($devisId);
+            if ($devis !== null) {
+                $devisPayload = [
+                    'id' => $devis->id,
+                    'title' => $devis->title,
+                    'status' => $devis->status,
+                    'status_label' => $this->devisStatusLabel($devis->status),
+                    'order_reference' => $devis->order_reference,
+                ];
+            }
+        }
+
+        $town = trim((string) ($applicant?->town ?? ''));
+        if ($town === '') {
+            $town = trim((string) ($applicant?->company_address ?? ''));
+        }
+
         $r = [
             'id' => $c->id,
             'besoin_id' => $c->besoin_id,
@@ -169,6 +191,11 @@ class CandidatureController extends Controller
             'status' => $c->status,
             'message' => $c->message,
             'posted_at' => $c->posted_at?->toIso8601String(),
+            'applicant_phone' => $applicant?->phone,
+            'applicant_email' => $applicant?->email,
+            'applicant_town' => $town !== '' ? $town : null,
+            'devis_id' => $devisId,
+            'devis' => $devisPayload,
         ];
         if ($c->relationLoaded('besoin') && $c->besoin) {
             $r['besoin'] = [
@@ -179,5 +206,48 @@ class CandidatureController extends Controller
         }
 
         return $r;
+    }
+
+    private function resolveDevisId(Candidature $c): ?int
+    {
+        $message = trim((string) ($c->message ?? ''));
+        if ($message !== '' && preg_match('/n°\s*(\d+)/u', $message, $m) === 1) {
+            $fromMessage = (int) $m[1];
+            if ($fromMessage > 0) {
+                $exists = Devis::query()
+                    ->where('id', $fromMessage)
+                    ->where('user_id', $c->applicant_id)
+                    ->exists();
+                if ($exists) {
+                    return $fromMessage;
+                }
+            }
+        }
+
+        $besoin = $c->relationLoaded('besoin') ? $c->besoin : Besoin::query()->find($c->besoin_id);
+        if ($besoin === null) {
+            return null;
+        }
+
+        $devis = Devis::query()
+            ->where('user_id', $c->applicant_id)
+            ->where('client_user_id', $besoin->user_id)
+            ->where('order_reference', 'BESOIN-'.$c->besoin_id)
+            ->orderByDesc('id')
+            ->first();
+
+        return $devis?->id;
+    }
+
+    private function devisStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'non_traite' => 'Non traité',
+            'en_cours' => 'En cours',
+            'envoye' => 'Envoyé',
+            'valide' => 'Validé',
+            'rejete' => 'Rejeté',
+            default => $status,
+        };
     }
 }

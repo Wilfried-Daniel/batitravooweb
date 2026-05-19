@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ServiceController extends Controller
@@ -15,9 +14,6 @@ class ServiceController extends Controller
     {
         $q = Service::query()->with(['user', 'category']);
 
-        if ($request->filled('status')) {
-            $q->where('status', $request->string('status'));
-        }
         if ($request->filled('service_kind')) {
             $q->where('service_kind', $request->string('service_kind'));
         }
@@ -40,11 +36,10 @@ class ServiceController extends Controller
     public function update(Request $request, Service $service): RedirectResponse
     {
         $data = $request->validate([
-            'status' => ['required', Rule::in(['pending', 'approved', 'rejected'])],
             'admin_notes' => ['nullable', 'string', 'max:5000'],
         ]);
         $service->update($data);
 
-        return redirect()->route('admin.services.show', $service)->with('ok', 'Service mis à jour.');
+        return redirect()->route('admin.services.show', $service)->with('ok', 'Notes enregistrées.');
     }
 }

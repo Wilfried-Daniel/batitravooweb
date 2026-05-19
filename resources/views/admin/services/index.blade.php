@@ -53,7 +53,7 @@
                     <th>Type</th>
                     <th>Lieu</th>
                     <th>Notation</th>
-                    <th>Statut</th>
+                    <th>Visibilité</th>
                     <th class="row-actions"></th>
                 </tr>
             </thead>
@@ -68,15 +68,16 @@
                     <td>{{ $s->location ?? '—' }}</td>
                     <td>★ {{ $s->rating }} <span style="color:var(--text-3)">({{ $s->review_count }})</span></td>
                     <td>
-                        @if($s->status === 'approved')<span class="badge b-ok">Approuvé</span>
-                        @elseif($s->status === 'rejected')<span class="badge b-no">Rejeté</span>
-                        @else <span class="badge b-pending">En attente</span>
+                        @if($s->is_visible)
+                            <span class="badge b-ok">Visible</span>
+                        @else
+                            <span class="badge b-mute">Masqué</span>
                         @endif
                     </td>
                     <td class="row-actions">
                         <a class="admin-link" href="{{ route('admin.services.show', $s) }}">
                             <svg width="14" height="14" aria-hidden="true"><use href="#admin-ico-eye" xlink:href="#admin-ico-eye"/></svg>
-                            Modérer
+                            Voir
                         </a>
                     </td>
                 </tr>

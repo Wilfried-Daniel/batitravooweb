@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Me\SupportTicketController;
 use App\Http\Controllers\Api\Me\UserDocumentController;
 use App\Http\Controllers\Api\PublicBesoinController;
 use App\Http\Controllers\Api\PublicCategoryController;
+use App\Http\Controllers\Api\PublicMarketplaceProviderController;
 use App\Http\Controllers\Api\PublicProductController;
 use App\Http\Controllers\Api\PublicServiceController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,7 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::get('/categories', PublicCategoryController::class);
+Route::get('/marketplace/providers', [PublicMarketplaceProviderController::class, 'index']);
 Route::get('/products', [PublicProductController::class, 'index']);
 Route::get('/products/{product}', [PublicProductController::class, 'show'])->whereNumber('product');
 Route::get('/services', [PublicServiceController::class, 'index']);
@@ -62,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/me/documents', [UserDocumentController::class, 'index']);
         Route::post('/me/documents', [UserDocumentController::class, 'store']);
+        Route::delete('/me/documents/{document}', [UserDocumentController::class, 'destroy'])->whereNumber('document');
 
         Route::get('/me/tickets', [SupportTicketController::class, 'index']);
         Route::get('/me/tickets/form-options', [SupportTicketController::class, 'formOptions']);

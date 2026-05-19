@@ -57,7 +57,7 @@ class ProductController extends Controller
             'image_path' => $data['image_path'] ?? null,
             'price_amount' => $data['price_amount'],
             'stock_units' => $data['stock_units'],
-            'status' => 'pending',
+            'status' => 'approved',
         ]);
         $product->load('category');
 

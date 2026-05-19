@@ -25,7 +25,7 @@ class ServiceController extends Controller
         ], true), 403);
 
         $items = Service::query()->where('user_id', $u->id)
-            ->with('category')
+            ->with(['category', 'user'])
             ->orderByDesc('id')
             ->get()
             ->map(fn (Service $s) => $this->row($s));
@@ -79,11 +79,11 @@ class ServiceController extends Controller
             'image_path' => $data['image_path'] ?? null,
             'service_kind' => $data['service_kind'],
             'price_variables' => $request->boolean('price_variables'),
-            'price_fixed_label' => $data['price_fixed_label'] ?? null,
-            'status' => 'pending',
+            'price_fixed_label' => $this->normalizePriceFixedLabel($data['price_fixed_label'] ?? null),
+            'status' => 'approved',
             'is_visible' => true,
         ]);
-        $service->load('category');
+        $service->load(['category', 'user']);
 
         return response()->json(['data' => $this->row($service)], 201);
     }
@@ -106,7 +106,7 @@ class ServiceController extends Controller
             'image' => ['nullable', 'image', 'max:10240'],
             'price_variables' => ['nullable', 'boolean'],
             'price_fixed_label' => ['nullable', 'string', 'max:255'],
-            /** Affichage catalogue public (si statut validé). */
+            /** Affichage catalogue public. */
             'is_visible' => ['sometimes', 'boolean'],
         ]);
 
@@ -135,10 +135,14 @@ class ServiceController extends Controller
         if (array_key_exists('price_variables', $data)) {
             $data['price_variables'] = $request->boolean('price_variables');
         }
+        if ($request->exists('price_fixed_label')) {
+            $data['price_fixed_label'] = $this->normalizePriceFixedLabel($request->input('price_fixed_label'));
+        }
 
         $service->fill($data);
+        $service->service_kind = $this->serviceKindForProfileType($u->profile_type);
         $service->save();
-        $service->load('category');
+        $service->load(['category', 'user']);
 
         return response()->json(['data' => $this->row($service)]);
     }
@@ -157,6 +161,16 @@ class ServiceController extends Controller
         $service->delete();
 
         return response()->json(['ok' => true]);
+    }
+
+    private function normalizePriceFixedLabel(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        $t = trim((string) $value);
+
+        return $t === '' ? null : $t;
     }
 
     private function uniqueSlug(string $title, ?int $ignoreId = null): string
@@ -180,6 +194,9 @@ class ServiceController extends Controller
      */
     private function row(Service $s): array
     {
+        if (! $s->relationLoaded('user')) {
+            $s->load('user');
+        }
         $imageUrl = $this->resolveServiceImageUrl($s);
 
         $r = [
@@ -191,7 +208,7 @@ class ServiceController extends Controller
             'image_path' => $s->image_path,
             'image_url' => $imageUrl,
             'has_image' => $imageUrl !== null,
-            'service_kind' => $s->service_kind,
+            'service_kind' => $this->effectiveServiceKind($s),
             'price_variables' => (bool) $s->price_variables,
             'price_fixed_label' => $s->price_fixed_label,
             'pricing' => $this->servicePricingPayload($s),

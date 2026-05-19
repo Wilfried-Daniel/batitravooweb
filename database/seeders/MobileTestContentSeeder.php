@@ -54,7 +54,7 @@ class MobileTestContentSeeder extends Seeder
                 'title' => '[MOBILE] Terrassement accès chantier',
             ],
             [
-                'budget' => 'Prix fixe — 4 500 000 FCFA',
+                'budget' => '4 500 000 FCFA',
                 'start_label' => 'Début : 1/6/2026',
                 'place' => 'Abidjan — Cocody',
                 'description' => 'Profil recherché : conducteur travaux / terrassement. Seed tests mobile.',
@@ -90,7 +90,7 @@ class MobileTestContentSeeder extends Seeder
                 'title' => '[MOBILE] Réparation fuite salle de bain',
             ],
             [
-                'budget' => 'Devis sur demande',
+                'budget' => 'Sur devis',
                 'start_label' => 'Début : 20/5/2026',
                 'place' => 'Marcory',
                 'description' => 'Profil recherché : plombier. Seed tests mobile.',
@@ -128,7 +128,7 @@ class MobileTestContentSeeder extends Seeder
                 'user_id' => $artisan->id,
                 'category_id' => $catServices?->id,
                 'title' => '[MOBILE] Installation sanitaire',
-                'description' => 'Service en attente modération — seed mobile.',
+                'description' => 'Installation sanitaire — seed mobile.',
                 'location' => 'Grand-Bassam',
                 'image_url' => null,
                 'image_path' => null,
@@ -137,7 +137,7 @@ class MobileTestContentSeeder extends Seeder
                 'price_fixed_label' => '180 000 FCFA',
                 'rating' => 0,
                 'review_count' => 0,
-                'status' => 'pending',
+                'status' => 'approved',
             ]
         );
 
@@ -153,7 +153,7 @@ class MobileTestContentSeeder extends Seeder
                 'image_path' => null,
                 'service_kind' => 'entrepreneur',
                 'price_variables' => true,
-                'price_fixed_label' => 'Sur devis',
+                'price_fixed_label' => 'À partir de 450 000 FCFA',
                 'rating' => 4.2,
                 'review_count' => 7,
                 'status' => 'approved',

@@ -61,24 +61,18 @@ class UserDocument extends Model
         $storedName = Str::uuid()->toString().'.'.$ext;
         $storagePath = $file->storeAs($dir, $storedName, 'public');
 
-        $existing = self::query()
-            ->where('user_id', $user->id)
-            ->where('kind', $kind)
-            ->first();
+        return self::create([
+            'user_id' => $user->id,
+            'kind' => $kind,
+            'storage_path' => $storagePath,
+            'original_filename' => $file->getClientOriginalName(),
+        ]);
+    }
 
-        if ($existing !== null && $existing->storage_path) {
-            Storage::disk('public')->delete($existing->storage_path);
+    public function deleteStoredFile(): void
+    {
+        if ($this->storage_path) {
+            Storage::disk('public')->delete($this->storage_path);
         }
-
-        return self::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'kind' => $kind,
-            ],
-            [
-                'storage_path' => $storagePath,
-                'original_filename' => $file->getClientOriginalName(),
-            ]
-        );
     }
 }

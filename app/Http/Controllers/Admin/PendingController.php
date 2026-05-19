@@ -23,7 +23,6 @@ class PendingController extends Controller
             ->count();
 
         $pendingProducts = Product::query()->where('status', 'pending')->count();
-        $pendingServices = Service::query()->where('status', 'pending')->count();
 
         $supportActive = SupportTicket::query()
             ->whereIn('status', [
@@ -35,7 +34,6 @@ class PendingController extends Controller
         return view('admin.pending', [
             'pendingProfiles' => $pendingProfiles,
             'pendingProducts' => $pendingProducts,
-            'pendingServices' => $pendingServices,
             'supportActive' => $supportActive,
         ]);
     }
