@@ -354,7 +354,7 @@ button { font-family: inherit; }
 .admin-header__search-input {
     width: 100%;
     height: 38px;
-    padding: 0 14px 0 38px;
+    padding: 0 40px 0 16px;
     border: 1px solid var(--border);
     background: var(--surface-2);
     border-radius: 10px;
@@ -362,6 +362,14 @@ button { font-family: inherit; }
     font-size: 0.88rem;
     color: var(--text-1);
     transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+    -webkit-appearance: none;
+}
+.admin-header__search-input::-webkit-search-decoration,
+.admin-header__search-input::-webkit-search-cancel-button,
+.admin-header__search-input::-webkit-search-results-button,
+.admin-header__search-input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    display: none;
 }
 .admin-header__search-input::placeholder { color: var(--text-4); }
 .admin-header__search-input:focus {
@@ -372,24 +380,11 @@ button { font-family: inherit; }
 }
 .admin-header__search-ico {
     position: absolute;
-    left: 12px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-4);
     pointer-events: none;
-}
-.admin-header__kbd {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 0.7rem;
-    color: var(--text-4);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 2px 6px;
-    border-radius: 6px;
 }
 
 .admin-header__actions {
@@ -1055,13 +1050,44 @@ input[type='checkbox'] {
     align-items: flex-end;
     margin-bottom: var(--space-4);
 }
-.admin-filters .form-row { margin: 0; min-width: 0; }
-.admin-filters .admin-field { margin-bottom: 0; flex: 1; min-width: 200px; }
-.admin-filters .admin-btn { height: 40px; }
+.admin-filters .form-row { 
+    margin: 0; 
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.admin-filters .form-row label {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-3);
+    line-height: 1;
+}
+.admin-filters .admin-btn { 
+    height: 38px; 
+    display: inline-flex; 
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    margin: 0;
+    box-sizing: border-box;
+    font-size: 0.88rem;
+    line-height: 1;
+    border-width: 1px;
+}
 .admin-filters input[type='text'],
 .admin-filters input[type='search'],
 .admin-filters select {
     min-width: 180px;
+    height: 38px;
+    margin: 0;
+    box-sizing: border-box;
+    font-size: 0.88rem;
+    line-height: 1;
+    padding: 0 12px;
+    border: 1px solid var(--border-strong);
+    background-color: #fff;
 }
 
 /* —— Pagination —— */

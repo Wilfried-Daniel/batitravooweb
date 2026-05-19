@@ -13,6 +13,15 @@
 
         return mb_strtoupper(mb_substr($name, 0, 1));
     };
+    $formatDate = function ($iso) {
+        if (empty($iso)) return '—';
+        try {
+            $c = \Carbon\Carbon::parse($iso)->locale('fr');
+            if ($c->isToday()) return $c->translatedFormat('H:i');
+            if ($c->isYesterday()) return 'Hier, ' . $c->translatedFormat('H:i');
+            return $c->translatedFormat('d M, H:i');
+        } catch (\Throwable) { return (string) $iso; }
+    };
 @endphp
 
 <div class="app-card app-card--flush app-flex-between-wrap app-mb-sm">
@@ -54,7 +63,7 @@
                             @if (! empty($msg['attachment_url']))
                                 <a href="{{ $msg['attachment_url'] }}" class="msn__attach" target="_blank" rel="noopener">@include('app.partials.app-nav-icon', ['name' => 'paperclip'])<span>Pièce jointe</span></a>
                             @endif
-                            <time class="msn__time">{{ \Illuminate\Support\Str::limit($msg['created_at'] ?? '', 19) }}</time>
+                            <time class="msn__time">{{ $formatDate($msg['created_at'] ?? '') }}</time>
                         </div>
                     </div>
                 @endforeach

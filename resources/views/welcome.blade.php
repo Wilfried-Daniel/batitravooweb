@@ -1086,7 +1086,7 @@
                     </figure>
                     <div class="testimonial-card__body">
                         <blockquote class="testimonial-card__quote">
-                            « J'avais du mal à trouver un artisan sérieux. En quelques heures sur BATITRAVOO, j'ai reçu plusieurs propositions et j'ai pu lancer mes travaux rapidement. »
+                            « Pour rénover mon appartement, j'ai posté mon projet et j'ai reçu rapidement des devis précis et détaillés de plusieurs artisans qualifiés. »
                         </blockquote>
                     </div>
                     <footer class="testimonial-card__footer">
@@ -1103,7 +1103,7 @@
                     </figure>
                     <div class="testimonial-card__body">
                         <blockquote class="testimonial-card__quote">
-                            « J'avais du mal à trouver un artisan sérieux. En quelques heures sur BATITRAVOO, j'ai reçu plusieurs propositions et j'ai pu lancer mes travaux rapidement. »
+                            « Je cherchais un plombier urgent pour ma cuisine. Grâce à BATITRAVOO, j'ai trouvé un professionnel compétent en moins d'une journée. »
                         </blockquote>
                     </div>
                     <footer class="testimonial-card__footer">

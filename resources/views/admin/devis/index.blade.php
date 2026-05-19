@@ -37,13 +37,17 @@
             @endforeach
         </select>
     </div>
-    <button type="submit" class="admin-btn admin-btn--navy">
-        <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-filter" xlink:href="#admin-ico-filter"/></svg>
-        Filtrer
-    </button>
-    @if(request('q') || request('status'))
-        <a href="{{ route('admin.devis.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
-    @endif
+    <div class="form-row">
+        <button type="submit" class="admin-btn admin-btn--navy">
+            <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-filter" xlink:href="#admin-ico-filter"/></svg>
+            Filtrer
+        </button>
+    </div>
+    <div class="form-row">
+        @if(request('q') || request('status'))
+            <a href="{{ route('admin.devis.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
+        @endif
+    </div>
 </form>
 
 <div class="card" style="padding:0">

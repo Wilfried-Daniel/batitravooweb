@@ -25,7 +25,7 @@
             return '—';
         }
         try {
-            return \Carbon\Carbon::parse($iso)->locale('fr')->translatedFormat('d MMM Y');
+            return \Carbon\Carbon::parse($iso)->locale('fr')->translatedFormat('d F Y à H:i');
         } catch (\Throwable) {
             return (string) $iso;
         }

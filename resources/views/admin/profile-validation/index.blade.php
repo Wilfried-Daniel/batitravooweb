@@ -58,7 +58,7 @@
 
 <form method="get" class="card admin-filters" role="search">
     <input type="hidden" name="status" value="{{ $currentStatus }}">
-    <div class="form-row" style="flex:1; min-width:220px">
+    <div class="form-row" style="flex:1; min-width:200px">
         <label for="q">Recherche</label>
         <input id="q" type="text" name="q" value="{{ request('q') }}" placeholder="Nom, e-mail, téléphone…">
     </div>
@@ -71,10 +71,14 @@
             @endforeach
         </select>
     </div>
-    <button type="submit" class="admin-btn admin-btn--navy">Filtrer</button>
-    @if(request('q') || request('profile_type'))
-        <a href="{{ route('admin.profile-validation.index', ['status' => $currentStatus]) }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
-    @endif
+    <div class="form-row">
+        <button type="submit" class="admin-btn admin-btn--navy">Filtrer</button>
+    </div>
+    <div class="form-row">
+        @if(request('q') || request('profile_type'))
+            <a href="{{ route('admin.profile-validation.index', ['status' => $currentStatus]) }}" class="admin-btn admin-btn--ghost admin-btn--sm">Réinitialiser</a>
+        @endif
+    </div>
 </form>
 
 <div class="card" style="padding:0">

@@ -22,10 +22,8 @@ class ProfileValidationController extends Controller
             User::VALIDATION_CHANGES_REQUESTED,
         ];
 
-        $status = $request->string('status')->trim();
-        if ($status === '') {
-            $status = User::VALIDATION_PENDING;
-        }
+        $status = $request->query('status');
+        
         if (! in_array($status, $allowedStatuses, true)) {
             $status = User::VALIDATION_PENDING;
         }

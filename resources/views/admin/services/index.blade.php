@@ -22,13 +22,26 @@
             <option value="entrepreneur" @selected(request('service_kind')==='entrepreneur')>Entrepreneur</option>
         </select>
     </div>
-    <button type="submit" class="admin-btn admin-btn--navy">
-        <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-filter" xlink:href="#admin-ico-filter"/></svg>
-        Filtrer
-    </button>
-    @if(request('q') || request('service_kind'))
-        <a href="{{ route('admin.services.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
-    @endif
+    <div class="form-row">
+        <label for="status">Statut</label>
+        <select id="status" name="status">
+            <option value="">Tous les statuts</option>
+            <option value="pending" @selected(request('status')==='pending')>En attente</option>
+            <option value="approved" @selected(request('status')==='approved')>Approuvé</option>
+            <option value="rejected" @selected(request('status')==='rejected')>Rejeté</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <button type="submit" class="admin-btn admin-btn--navy">
+            <svg width="16" height="16" aria-hidden="true"><use href="#admin-ico-filter" xlink:href="#admin-ico-filter"/></svg>
+            Filtrer
+        </button>
+    </div>
+    <div class="form-row">
+        @if(request('q') || request('status') || request('service_kind'))
+            <a href="{{ route('admin.services.index') }}" class="admin-btn admin-btn--ghost">Réinitialiser</a>
+        @endif
+    </div>
 </form>
 
 <div class="card" style="padding:0">
